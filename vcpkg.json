@@ -1,0 +1,10 @@
+{
+    "name": "caerwyn",
+    "version-string": "2026.4.24",
+    "port-version": 1,
+    "description": "Caerwyn is a live stream chat client built with C++23.",
+    "homepage": "https://github.com/funnansoftwarellc/caerwyn",
+    "dependencies": [
+        "raylib"
+    ]
+}
