@@ -79,6 +79,7 @@ find_package(raylib CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         raylib
+        caerwyn-gui
 )
 
 if(NOT EMSCRIPTEN AND NOT ANDROID)

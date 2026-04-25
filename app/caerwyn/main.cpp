@@ -1,96 +1,107 @@
 #include <raylib.h>
 
-#define RAYGUI_IMPLEMENTATION
-#include <raygui.h>
-
 #include <chrono>
+#include <cstdlib>
 #include <format>
-#include <print>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
-struct Message
+import caerwyn.gui;
+
+namespace
 {
-    std::string username;
-    std::string message;
-    std::chrono::nanoseconds timestamp;
-};
+
+    struct Message
+    {
+        std::string username;
+        std::string message;
+        std::chrono::nanoseconds timestamp;
+    };
+
+    constexpr auto InitialWidth = 720;
+    constexpr auto InitialHeight = 1440;
+    constexpr auto FontSize = 40.0F;
+    constexpr auto FontSpacing = 0.0F;
+    constexpr auto LineSpacing = 8.0F;
+    constexpr auto PanelMargin = 10.0F;
+    constexpr auto RowSpacing = 6.0F;
+
+    auto buildMessageLabel(const Message& msg, Font fontRegular, Font fontBold) -> std::unique_ptr<caerwyn::gui::Widget>
+    {
+        using namespace caerwyn::gui;
+
+        auto label = std::make_unique<RichTextLabel>();
+        label->setWrapMode(WrapMode::Word);
+        label->setLineSpacing(LineSpacing);
+
+        label->addRun(TextRun{.text = std::format("{:%H:%M} ", std::chrono::hh_mm_ss{msg.timestamp}),
+                              .font = fontRegular,
+                              .fontSize = FontSize,
+                              .spacing = FontSpacing,
+                              .color = Color{160, 160, 160, 255}});
+        label->addRun(TextRun{.text = std::format("{}: ", msg.username),
+                              .font = fontBold,
+                              .fontSize = FontSize,
+                              .spacing = FontSpacing,
+                              .color = Color{255, 255, 255, 255}});
+        label->addRun(
+            TextRun{.text = msg.message, .font = fontRegular, .fontSize = FontSize, .spacing = FontSpacing, .color = Color{255, 255, 255, 255}});
+        return label;
+    }
+
+    auto buildRoot(const std::vector<Message>& messages, Font fontRegular, Font fontBold) -> std::unique_ptr<caerwyn::gui::Widget>
+    {
+        using namespace caerwyn::gui;
+
+        auto column = std::make_unique<ColumnLayout>();
+        column->setSpacing(RowSpacing);
+        column->setPadding(Insets::all(PanelMargin));
+        for (const auto& msg : messages)
+        {
+            column->addChild(buildMessageLabel(msg, fontRegular, fontBold));
+        }
+
+        auto scroll = std::make_unique<ScrollView>();
+        scroll->setChild(std::move(column));
+        return scroll;
+    }
+
+} // namespace
 
 auto main() -> int
 {
-    constexpr auto width = 720;
-    constexpr auto height = 1440;
-
     using namespace std::chrono_literals;
 
-    auto dummy = std::vector{
-        Message{"Alice", "Hello, world!", 19h + 5min},
-        Message{"Bob", "Hi, Alice!", 19h + 6min},
-        Message{"Charlie", "Good morning!", 19h + 7min},
+    const auto messages = std::vector<Message>{
+        Message{"Alice", "Hello twitch chatters, my name is Funnan, I am a C++ developer of 15 years.", 19h + 5min},
+        Message{"Bob",
+                "Hello youtube chatters, I am actively developing a video game called Briarthorn about aircombat "
+                "situations.",
+                19h + 6min},
+        Message{"Charlie", "Hello Mom, Dad, and Brothers. Thank you for subscribing to my youtube channel.", 19h + 7min},
     };
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(width, height, "Caerwyn");
+    InitWindow(InitialWidth, InitialHeight, "Caerwyn");
 
     const auto fontRegular = LoadFont("D:\\dev\\caerwyn\\assets\\fonts\\Roboto\\static\\Roboto-Regular.ttf");
     const auto fontBold = LoadFont("D:\\dev\\caerwyn\\assets\\fonts\\Roboto\\static\\Roboto-Bold.ttf");
 
-    constexpr auto fontSize = 40;
-    constexpr auto spacing = 5;
-    constexpr auto lineHeight = fontSize + 8; // fixed row pitch
-    Rectangle panelRec = {0, 0, width, height};
-    Rectangle panelContentRec = {10, 10, width - 20, height - 20};
-    Rectangle panelView = {0};
-    Vector2 panelScroll = {0, 0};
-
-    GuiSetStyle(DEFAULT, TEXT_SIZE, fontSize);
-    GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_NONE);
-    GuiSetStyle(DEFAULT, BACKGROUND_COLOR, ColorToInt(BLACK));
+    caerwyn::gui::App app{buildRoot(messages, fontRegular, fontBold)};
 
     while (!WindowShouldClose())
     {
-        PollInputEvents();
         BeginDrawing();
         ClearBackground(BLACK);
-
-        GuiScrollPanel(panelRec, NULL, panelContentRec, &panelScroll, &panelView);
-
-        BeginScissorMode(static_cast<int>(panelContentRec.x), static_cast<int>(panelContentRec.y), static_cast<int>(panelContentRec.width),
-                         static_cast<int>(panelContentRec.height));
-
-        const auto startPosX = panelContentRec.x + panelScroll.x;
-        auto posY = panelContentRec.y + panelScroll.y;
-
-        for (const auto& message : dummy)
-        {
-            const auto timestamp = std::format("{:%H:%M}", std::chrono::hh_mm_ss{message.timestamp});
-            const auto username = std::format("{}:", message.username);
-
-            auto posX = startPosX;
-
-            GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(GRAY));
-            GuiSetFont(fontRegular);
-            auto lblSize = MeasureTextEx(fontRegular, timestamp.c_str(), fontSize, spacing);
-            GuiLabel({posX, posY, lblSize.x, lineHeight}, timestamp.c_str());
-            posX += lblSize.x;
-
-            GuiSetFont(fontBold);
-            GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(WHITE));
-            lblSize = MeasureTextEx(fontBold, username.c_str(), fontSize, spacing);
-            GuiLabel({posX, posY, lblSize.x, lineHeight}, username.c_str());
-            posX += lblSize.x;
-
-            GuiSetFont(fontRegular);
-            GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(WHITE));
-            lblSize = MeasureTextEx(fontRegular, message.message.c_str(), fontSize, spacing);
-            GuiLabel({posX, posY, lblSize.x, lineHeight}, message.message.c_str());
-            posY += lineHeight;
-        }
-
-        EndScissorMode();
-
+        const auto screen = caerwyn::gui::Size{static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())};
+        app.frame(screen);
         EndDrawing();
     }
 
+    UnloadFont(fontRegular);
+    UnloadFont(fontBold);
     CloseWindow();
-
     return EXIT_SUCCESS;
 }

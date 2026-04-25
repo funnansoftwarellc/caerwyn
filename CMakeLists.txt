@@ -8,4 +8,5 @@ project(caerwyn)
 
 include(cmake/build-apk.cmake)
 
+add_subdirectory(src)
 add_subdirectory(app)

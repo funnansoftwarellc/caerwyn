@@ -6,6 +6,7 @@
     "homepage": "https://github.com/funnansoftwarellc/caerwyn",
     "dependencies": [
         "raylib",
-        "raygui"
+        "raygui",
+        "glm"
     ]
 }
