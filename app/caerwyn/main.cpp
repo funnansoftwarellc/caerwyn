@@ -8,8 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include "resize_hook.hpp"
-
 import caerwyn.gui;
 
 namespace
@@ -24,13 +22,14 @@ namespace
 
     constexpr auto InitialWidth = 720;
     constexpr auto InitialHeight = 1440;
-    constexpr auto FontSize = 40.0F;
+    constexpr auto FontSize = 40;
     constexpr auto FontSpacing = 0.0F;
     constexpr auto LineSpacing = 8.0F;
     constexpr auto PanelMargin = 10.0F;
     constexpr auto RowSpacing = 6.0F;
 
-    auto buildMessageLabel(const Message& msg, Font fontRegular, Font fontBold) -> std::unique_ptr<caerwyn::gui::Widget>
+    auto buildMessageLabel(const Message& msg, const caerwyn::gui::Font& regular, const caerwyn::gui::Font& bold)
+        -> std::unique_ptr<caerwyn::gui::Widget>
     {
         using namespace caerwyn::gui;
 
@@ -38,22 +37,25 @@ namespace
         label->setWrapMode(WrapMode::Word);
         label->setLineSpacing(LineSpacing);
 
+        constexpr auto white = Color{255, 255, 255, 255};
+        constexpr auto grey = Color{160, 160, 160, 255};
         label->addRun(TextRun{.text = std::format("{:%H:%M} ", std::chrono::hh_mm_ss{msg.timestamp}),
-                              .font = fontRegular,
-                              .fontSize = FontSize,
+                              .font = regular.handle(),
+                              .fontSize = static_cast<float>(FontSize),
                               .spacing = FontSpacing,
-                              .color = Color{160, 160, 160, 255}});
+                              .color = grey});
         label->addRun(TextRun{.text = std::format("{}: ", msg.username),
-                              .font = fontBold,
-                              .fontSize = FontSize,
+                              .font = bold.handle(),
+                              .fontSize = static_cast<float>(FontSize),
                               .spacing = FontSpacing,
-                              .color = Color{255, 255, 255, 255}});
+                              .color = white});
         label->addRun(
-            TextRun{.text = msg.message, .font = fontRegular, .fontSize = FontSize, .spacing = FontSpacing, .color = Color{255, 255, 255, 255}});
+            TextRun{.text = msg.message, .font = regular.handle(), .fontSize = static_cast<float>(FontSize), .spacing = FontSpacing, .color = white});
         return label;
     }
 
-    auto buildRoot(const std::vector<Message>& messages, Font fontRegular, Font fontBold) -> std::unique_ptr<caerwyn::gui::Widget>
+    auto buildRoot(const std::vector<Message>& messages, const caerwyn::gui::Font& regular, const caerwyn::gui::Font& bold)
+        -> std::unique_ptr<caerwyn::gui::Widget>
     {
         using namespace caerwyn::gui;
 
@@ -62,7 +64,7 @@ namespace
         column->setPadding(Insets::all(PanelMargin));
         for (const auto& msg : messages)
         {
-            column->addChild(buildMessageLabel(msg, fontRegular, fontBold));
+            column->addChild(buildMessageLabel(msg, regular, bold));
         }
 
         auto scroll = std::make_unique<ScrollView>();
@@ -85,35 +87,14 @@ auto main() -> int
         Message{"Charlie", "Hello Mom, Dad, and Brothers. Thank you for subscribing to my youtube channel.", 19h + 7min},
     };
 
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(InitialWidth, InitialHeight, "Caerwyn");
+    caerwyn::gui::AppWindow window{{.width = InitialWidth, .height = InitialHeight, .title = "Caerwyn", .defaultFontSize = FontSize}};
 
-    const auto fontRegular = LoadFont("D:\\dev\\caerwyn\\assets\\fonts\\Roboto\\static\\Roboto-Regular.ttf");
-    const auto fontBold = LoadFont("D:\\dev\\caerwyn\\assets\\fonts\\Roboto\\static\\Roboto-Bold.ttf");
+    const auto& fontRegular = window.defaultFont();
+    caerwyn::gui::Font fontBold{"D:\\dev\\caerwyn\\assets\\fonts\\Roboto\\static\\Roboto-Bold.ttf", FontSize};
+    fontBold.setTextureFilter(TEXTURE_FILTER_POINT);
 
-    caerwyn::gui::App app{buildRoot(messages, fontRegular, fontBold)};
+    window.setRoot(buildRoot(messages, fontRegular, fontBold));
+    window.run();
 
-    auto renderFrame = [&app]
-    {
-        BeginDrawing();
-        ClearBackground(BLACK);
-        const auto screen = caerwyn::gui::Size{static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())};
-        app.frame(screen);
-        EndDrawing();
-    };
-
-    // On Windows, the modal resize loop blocks raylib's main loop so the
-    // window doesn't repaint until the user releases the mouse. This hook
-    // re-renders on every WM_SIZE dispatched during that loop.
-    caerwyn::installResizeRedrawHook(GetWindowHandle(), renderFrame);
-
-    while (!WindowShouldClose())
-    {
-        renderFrame();
-    }
-
-    UnloadFont(fontRegular);
-    UnloadFont(fontBold);
-    CloseWindow();
     return EXIT_SUCCESS;
 }

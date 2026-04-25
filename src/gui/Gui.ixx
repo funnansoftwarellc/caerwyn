@@ -8,3 +8,5 @@ export import caerwyn.gui.rich_text_label;
 export import caerwyn.gui.viewport;
 export import caerwyn.gui.scrollbar;
 export import caerwyn.gui.scroll_view;
+export import caerwyn.gui.font;
+export import caerwyn.gui.app_window;

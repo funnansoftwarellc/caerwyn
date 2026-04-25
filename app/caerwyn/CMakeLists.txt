@@ -9,7 +9,6 @@ endif()
 target_sources(${PROJECT_NAME}
     PRIVATE
         main.cpp
-        resize_hook_win32.cpp
 )
 
 if(EMSCRIPTEN)
@@ -64,6 +63,15 @@ else()
         target_link_libraries(${PROJECT_NAME}
             PRIVATE
                 winmm
+        )
+        # raylib defines its own `CloseWindow`/`ShowCursor` which collide with
+        # the user32.dll imports pulled in via the default Windows libs. Tell
+        # the linker to prefer the first definition (raylib's) and continue.
+        target_link_options(${PROJECT_NAME}
+            PRIVATE
+                /FORCE:MULTIPLE
+                /IGNORE:4006
+                /IGNORE:4088
         )
     endif()
 endif()

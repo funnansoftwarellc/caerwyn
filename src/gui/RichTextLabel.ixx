@@ -3,6 +3,7 @@ module;
 #include <raylib.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -94,7 +95,7 @@ export namespace caerwyn::gui
             const auto b = bounds();
             for (const auto& frag : fragments_)
             {
-                const auto pos = Vector2{b.x + frag.x, b.y + frag.y};
+                const auto pos = Vector2{std::round(b.x + frag.x), std::round(b.y + frag.y)};
                 DrawTextEx(frag.font, frag.text.c_str(), pos, frag.fontSize, frag.spacing, frag.color);
             }
         }

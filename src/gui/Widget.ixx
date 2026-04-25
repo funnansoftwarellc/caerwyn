@@ -267,33 +267,4 @@ export namespace caerwyn::gui
         }
     };
 
-    // Top-level driver. Owns one root widget and runs the per-frame pipeline.
-    class App
-    {
-    public:
-        explicit App(std::unique_ptr<Widget> root) : root_(std::move(root))
-        {
-        }
-
-        auto frame(Size screen) -> void
-        {
-            if (!root_)
-            {
-                return;
-            }
-            (void)root_->measure(screen);
-            root_->arrange(Rect{0.0F, 0.0F, screen.width, screen.height});
-            root_->update();
-            root_->draw();
-        }
-
-        [[nodiscard]] auto root() -> Widget*
-        {
-            return root_.get();
-        }
-
-    private:
-        std::unique_ptr<Widget> root_;
-    };
-
 } // namespace caerwyn::gui

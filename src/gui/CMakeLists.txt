@@ -32,5 +32,16 @@ target_sources(caerwyn-gui
             Viewport.ixx
             Scrollbar.ixx
             ScrollView.ixx
+            Font.ixx
+            AppWindow.ixx
             Gui.ixx
 )
+
+target_sources(caerwyn-gui
+    PRIVATE
+        AppWindow_platform.cpp
+)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/embed_binary.cmake)
+embed_binary(caerwyn-gui caerwyn_RobotoRegular
+    "${CMAKE_SOURCE_DIR}/assets/fonts/Roboto/static/Roboto-Regular.ttf")
