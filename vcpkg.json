@@ -5,6 +5,7 @@
     "description": "Caerwyn is a live stream chat client built with C++23.",
     "homepage": "https://github.com/funnansoftwarellc/caerwyn",
     "dependencies": [
-        "raylib"
+        "raylib",
+        "raygui"
     ]
 }

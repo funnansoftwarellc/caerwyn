@@ -67,6 +67,13 @@ else()
     endif()
 endif()
 
+find_path(RAYGUI_INCLUDE_DIRS "raygui.h")
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${RAYGUI_INCLUDE_DIRS}
+)
+
 find_package(raylib CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME}
