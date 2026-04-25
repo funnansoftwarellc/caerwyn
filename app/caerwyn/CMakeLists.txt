@@ -9,6 +9,7 @@ endif()
 target_sources(${PROJECT_NAME}
     PRIVATE
         main.cpp
+        resize_hook_win32.cpp
 )
 
 if(EMSCRIPTEN)

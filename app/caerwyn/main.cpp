@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include "resize_hook.hpp"
+
 import caerwyn.gui;
 
 namespace
@@ -91,13 +93,23 @@ auto main() -> int
 
     caerwyn::gui::App app{buildRoot(messages, fontRegular, fontBold)};
 
-    while (!WindowShouldClose())
+    auto renderFrame = [&app]
     {
         BeginDrawing();
         ClearBackground(BLACK);
         const auto screen = caerwyn::gui::Size{static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())};
         app.frame(screen);
         EndDrawing();
+    };
+
+    // On Windows, the modal resize loop blocks raylib's main loop so the
+    // window doesn't repaint until the user releases the mouse. This hook
+    // re-renders on every WM_SIZE dispatched during that loop.
+    caerwyn::installResizeRedrawHook(GetWindowHandle(), renderFrame);
+
+    while (!WindowShouldClose())
+    {
+        renderFrame();
     }
 
     UnloadFont(fontRegular);
